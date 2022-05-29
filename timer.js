@@ -1,9 +1,9 @@
-   CommandCombine(
+javascript:(()=>{try {
+CommandCombine(
 		{
 			Tag: 'timer', 
 			Description: "[number] [not necessary number] [not necessary *emote] - starts direct or random timer with sound signal of finish (only you hear it)",
 			Action: args => {
-javascript:(()=>{try {
 let t = [30];
 let j = NaN;
 let m = args;
@@ -50,6 +50,6 @@ setTimeout(function timer()
     ServerSend("ChatRoomChat",{Content:m,Type:"Emote"});
     AudioPlayInstantSound("Audio/"+AudioGetFileName("BellMedium")+".mp3", 1);
      }, j*1000);
-} catch(e){};})();
        }
 		})
+} catch(e){};})();
