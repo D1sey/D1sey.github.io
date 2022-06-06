@@ -21,7 +21,7 @@ if (t.length==2) t.sort(function(a,b){return a-b});
         console.log(t);
 if (!m && t.length==1) m = "starts "+t[0]+" sec timer";
 else if (!m && t.length==2) m = "starts random timer between "+t[0]+" and "+t[1]+" sec";
-else if (!m && t.length>2) m = "starts one of the following timers at random: "+t.join(" ,")+" sec";
+else if (!m && t.length>2) m = "starts one of the following timers at random: "+t.join(", ");
 ServerSend("ChatRoomChat",{Content:m,Type:"Emote"});
 if (t.length==1) {
   j=t[0];
