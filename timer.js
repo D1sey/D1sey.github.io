@@ -42,5 +42,4 @@ setTimeout(function timer()
      }, j*1000);
        }
 		})
-ServerSend("ChatRoomChat",{Content:"*Timer was loaded. Now command /timer works",Type:"Emote",Target:Player.MemberNumber});
 } catch(e){};})();
