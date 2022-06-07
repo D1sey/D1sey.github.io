@@ -8,7 +8,7 @@ let t = [];
 let j = NaN;
 let m = args;
 let l = m.length;
-if (m)
+if (m!="")
 	{
   m = m.split(" ");
 	while (m[0]*0+1) {
