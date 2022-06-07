@@ -1,4 +1,5 @@
 javascript:(()=>{try {
+Player.BCD="1.0";
    CommandCombine(
 		{
 			Tag: 'timer', 
