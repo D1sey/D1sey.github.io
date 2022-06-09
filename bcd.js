@@ -9,5 +9,5 @@ Player.BCD="1.0";
 			ServerSend("ChatRoomChat",{Content:"*Timer was loaded. Now the command "/timer" starts timer. Type "/help timer" for hint",Type:"Emote",Target:Player.MemberNumber});
 			}
 		})
-ServerSend("ChatRoomChat",{Content:"*Base script was loaded. Now aviable command: "/timer"",Type:"Emote",Target:Player.MemberNumber});
+ServerSend("ChatRoomChat",{Content:"*Base script was loaded. Now available the command "/timer"",Type:"Emote",Target:Player.MemberNumber});
 } catch(e){};})();
