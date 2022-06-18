@@ -1,7 +1,7 @@
 javascript:(()=>{try {
 // load and warning
-let BCD = "1.0";
-if (!Player.BCD) ServerSend("ChatRoomChat",{Content:"*Base Disey's script was loaded. "+ 'Now available the command "/timer"',Type:"Emote",Target:Player.MemberNumber});
+let BCD = "1.1";
+if (!Player.BCD) ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded. "+ 'Now available the commands \"/bcd\" and \"/timer\"',Type:"Emote",Target:Player.MemberNumber});
 Player.BCD = BCD;
 let changelog = "Changelog for Disey's script: \n \
 v 1.1 - added a command \"/bcd\" with arguments \"update\" and \"changelog\" \n \
