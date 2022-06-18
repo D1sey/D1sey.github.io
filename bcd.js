@@ -1,20 +1,43 @@
 javascript:(()=>{try {
-Player.BCD="1.0";
-   CommandCombine(
+// load and warning
+let BCD = "1.0";
+if (!Player.BCD) ServerSend("ChatRoomChat",{Content:"*Base Disey's script was loaded. "+ 'Now available the command "/timer"',Type:"Emote",Target:Player.MemberNumber});
+Player.BCD = BCD;
+let changelog = "Changelog for Disey's script: \n \
+v 1.1 - added a command \"/bcd\" with arguments \"update\" and \"changelog\" \n \
+v 1.0 - release version, avaiable command \"/timer\"  \
+";
+// registering commands
+	CommandCombine(
+		{
+			Tag: 'bcd', 
+			Description: "utility command for BCD",
+			Action: args => {
+				if (args == "update") {
+        			if (Player.BCD == BCD) return;
+				javascript:(()=>{fetch('https://d1sey.github.io/bcd.js').then(r=>r.text()).then(r=>eval(r));})();
+        			ServerSend("ChatRoomChat",{Content:"*Base Disey's script was updated",Type:"Emote",Target:Player.MemberNumber});
+      				}
+				else if (args == "changelog") {
+				ServerSend("ChatRoomChat",{Content:"*"+changelog,Type:"Emote",Target:Player.MemberNumber});
+				}
+	      		}
+		});
+	CommandCombine(
 		{
 			Tag: 'timer', 
-			Description: "first call to load",
+			Description: "first using this command will load ",
 			Action: args => {
-			javascript:(()=>{fetch('https://d1sey.github.io/timer.js').then(r=>r.text()).then(r=>eval(r));})();
-            ServerSend("ChatRoomChat",{Content:'*Timer was loaded. Now the command "/timer" starts timer. Type "/help timer" for hint',Type:"Emote",Target:Player.MemberNumber});
-			}
+				javascript:(()=>{fetch('https://d1sey.github.io/timer.js').then(r=>r.text()).then(r=>eval(r));})();
+            			ServerSend("ChatRoomChat",{Content:'*Timer was loaded. Now the command "/timer" starts timer. Type "/help timer" for hint',Type:"Emote",Target:Player.MemberNumber});
+				}
 		});
-ServerSend("ChatRoomChat",{Content:'*Base script was loaded. Now available the command "/timer"',Type:"Emote",Target:Player.MemberNumber});
+// some functions for using from any command	
 	
-//Check access, because native "AllowItem" works only after inspect the target
-//t - target, if empty = player
-//c - character who should have access, if empty = player
-//r - response, if true we send response to chat
+// Check access function, because native "AllowItem" works only after inspect the target
+// t - target, if empty = player
+// c - character who should have access, if empty = player
+// r - response, if true we send response to chat
 function chka (t, c, r) {
 // we declare m for response message and a fpr answer to check
 let m;
