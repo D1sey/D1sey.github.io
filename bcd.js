@@ -14,23 +14,26 @@ v 1.0 - release version, avaiable command \"/timer\"  \
 			Description: "utility command for BCD",
 			Action: args => {
 				if (args == "update") {
-        			if (Player.BCD == BCD) return;
-				javascript:(()=>{fetch('https://d1sey.github.io/bcd.js').then(r=>r.text()).then(r=>eval(r));})();
-        			ServerSend("ChatRoomChat",{Content:"*Base Disey's script was updated",Type:"Emote",Target:Player.MemberNumber});
+        			if (Player.BCD == BCD) {
+					ServerSend("ChatRoomChat",{Content:"*Last version already loaded",Type:"Emote",Target:Player.MemberNumber});
+					return;}
+				ServerSend("ChatRoomChat",{Content:"*Base Disey's script was updated",Type:"Emote",Target:Player.MemberNumber});
+				javascript:(()=>{fetch('https://d1sey.github.io/bcd.js').then(r=>r.text()).then(r=>eval(r));})();        			
       				}
 				else if (args == "changelog") {
 				ServerSend("ChatRoomChat",{Content:"*"+changelog,Type:"Emote",Target:Player.MemberNumber});
 				}
+				else ServerSend("ChatRoomChat",{Content:"*Use arguments \"changelog\" or \"update\"",Type:"Emote",Target:Player.MemberNumber});
 	      		}
 		});
 	CommandCombine(
 		{
 			Tag: 'timer', 
-			Description: "first using this command will load ",
+			Description: "first using this command will load script, then it will be work",
 			Action: args => {
+				ServerSend("ChatRoomChat",{Content:'*Timer was loaded. Now the command \"/timer\" starts timer. Type \"/help timer\" for hint',Type:"Emote",Target:Player.MemberNumber});
 				javascript:(()=>{fetch('https://d1sey.github.io/timer.js').then(r=>r.text()).then(r=>eval(r));})();
-            			ServerSend("ChatRoomChat",{Content:'*Timer was loaded. Now the command "/timer" starts timer. Type "/help timer" for hint',Type:"Emote",Target:Player.MemberNumber});
-				}
+            			}
 		});
 // some functions for using from any command	
 	
