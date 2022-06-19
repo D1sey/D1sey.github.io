@@ -35,6 +35,14 @@ v 1.0 - release version, avaiable command \"/timer\"  \
 				javascript:(()=>{fetch('https://d1sey.github.io/timer.js').then(r=>r.text()).then(r=>eval(r));})();
             			}
 		});
+	CommandCombine(
+		{
+			Tag: 'wardrobe', 
+			Description: "first using this command will load script, then it will be work",
+			Action: args => {
+				javascript:(()=>{fetch('https://d1sey.github.io/wardrobe.js').then(r=>r.text()).then(r=>eval(r));})();
+            			}
+		});
 // some functions for using from any command	
 	
 // Check access function, because native "AllowItem" works only after inspect the target
