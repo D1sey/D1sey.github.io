@@ -1,3 +1,4 @@
+javascript:(()=>{try {
 ServerSend("ChatRoomChat",{Content:'*Wardrobe was loaded. Now the command \"/wardrobe\" works. Type \"/help wardrobe\" for hint',Type:"Emote",Target:Player.MemberNumber});
 CommandCombine({
 			Tag: 'wardrobe',
@@ -58,4 +59,4 @@ CommandCombine({
           }
       if (c == 1) wear(o);}
   else {w.push(" 1 - "+(Player.WardrobeCharacterNames[0]));c = 1;wear(0)}msg(n)}
-	})}catch(e){WardrobeFastLoad(Player, 0, true);CharacterRefresh(Player)};})();
+})}catch(e){WardrobeFastLoad(Player, 0, true);CharacterRefresh(Player)};})();
