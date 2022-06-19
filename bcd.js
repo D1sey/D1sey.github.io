@@ -1,7 +1,6 @@
 javascript:(()=>{try {
-// load and warning
+ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded. "+ 'Now available the commands \"/bcd\" and \"/timer\"',Type:"Emote",Target:Player.MemberNumber});	
 let BCD = "1.3";
-if (!Player.BCD) ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded. "+ 'Now available the commands \"/bcd\" and \"/timer\"',Type:"Emote",Target:Player.MemberNumber});
 Player.BCD = BCD;
 let changelog = "Changelog for Disey's script: \n \
 v 1.3 - added \"/wardrobe\" command for test \n \
