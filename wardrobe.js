@@ -1,3 +1,4 @@
+ServerSend("ChatRoomChat",{Content:'*Wardrobe was loaded. Now the command \"/wardrobe\" starts timer. Type \"/help wardrobe\" for hint',Type:"Emote",Target:Player.MemberNumber});
 CommandCombine({
 			Tag: 'wardrobe',
     	Description: "How to use Disey\'s quick wardrobe: Write in the textbox \"/wardrobe \" with one of the follow options: \nA) You can use the slot number. \nB) You can use the complete name, part of the name or just a letter. \nC) You can search with numbers using \"-\" before it. \n• Just using it without any text load the first slot. \n• If there are two or more coincidences, it display a list of all found outfits. \n• If there are more than 40 coincidences it ask for another keyword. \n• It works even if you are tied. \n• If you have selected target for whisper - this character will be dressed with chosen outfit (if you have access for this)",
