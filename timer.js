@@ -1,8 +1,9 @@
 javascript:(()=>{try {
+ServerSend("ChatRoomChat",{Content:'*Timer was loaded. Now the command \"/timer\" starts timer. Type \"/help timer\" for hint',Type:"Emote",Target:Player.MemberNumber});
 CommandCombine(
 		{
 			Tag: 'timer', 
-			Description: "[one or a few numbers separated with space] [manual description instead default] - starts direct or random timer with sound signal of finish (only you hear it)",
+			Description: "[one or a few numbers separated with space]/[manual description instead default] - starts direct or random timer with sound signal of finish (only you hear it)",
 			Action: args => {
 let t = [];
 let j = NaN;
