@@ -1,9 +1,10 @@
 javascript:(()=>{try {
 // load and warning
-let BCD = "1.1";
+let BCD = "1.2";
 if (!Player.BCD) ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded. "+ 'Now available the commands \"/bcd\" and \"/timer\"',Type:"Emote",Target:Player.MemberNumber});
 Player.BCD = BCD;
 let changelog = "Changelog for Disey's script: \n \
+v 1.2 - added two functions for future commands \n \
 v 1.1 - added a command \"/bcd\" with arguments \"update\" and \"changelog\" \n \
 v 1.0 - release version, avaiable command \"/timer\"  \
 ";
@@ -31,7 +32,6 @@ v 1.0 - release version, avaiable command \"/timer\"  \
 			Tag: 'timer', 
 			Description: "first using this command will load script, then it will be work",
 			Action: args => {
-				ServerSend("ChatRoomChat",{Content:'*Timer was loaded. Now the command \"/timer\" starts timer. Type \"/help timer\" for hint',Type:"Emote",Target:Player.MemberNumber});
 				javascript:(()=>{fetch('https://d1sey.github.io/timer.js').then(r=>r.text()).then(r=>eval(r));})();
             			}
 		});
@@ -91,5 +91,29 @@ console.log(m);
 return a;
 }
 // end of check access function
+
+// Split all arguments to three group. numbers, words and /RP part
+// arg - array from all words after a command (separated with space, and / separates RP part)
+function separg (arg) {
+  // create the new object with three properties
+  let sarg = {numbers: [], words: [], rp: ""};
+  // check if arg is not array we try make array from string
+  if (!Array.isArray(arg)) arg = arg.split(" ");
+  // then we check if arg is empty or it's still not an array - no need to match, just return blank object
+  if (arg.length == 0 || !Array.isArray(arg)) return sarg;
+  // then we check numbers at the begin and add it to object 
+  while (arg[0]*0+1) {if (arg[0]!="") sarg.numbers.push(arg.shift()*1); else arg.shift()};
+  // if there are other elements we add all words before "/" to object's words
+  while ((arg[0]) && (!arg[0].startsWith("/"))) {sarg.words.push(arg.shift())};
+  // if there are other elements we collect them all to one string
+  sarg.rp = arg?.join(" ");
+  // then we delete "/" and check for "emote triggers" from base game
+  if (sarg.rp.startsWith("/me ")) sarg.rp = sarg.rp.substr(4);
+  if (sarg.rp.startsWith("/")) sarg.rp = sarg.rp.substr(1);
+  if (sarg.rp.startsWith("*") || sarg.rp.startsWith(":")) sarg.rp = sarg.rp.substr(1);
+  // and finally we return completed object
+  return sarg;
+  }
+// end of split arguments function
 	
 }catch(e){};})();
