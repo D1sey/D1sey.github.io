@@ -16,12 +16,12 @@ javascript:(()=>{try {
             setTimeout(function() {
               ColorChanger()},Player.rainbow*1000); 
             rc = '#'+Math.floor((Math.random()*15728639) + 1048576).toString(16); 
-            InventoryGet(Player, "HairAccessory2").Color = rc; 
-            InventoryGet(Player, "HairFront").Color = rc; 
-            InventoryGet(Player, "TailStraps").Color = rc;
+            if (InventoryGet(Player, "HairAccessory2")) InventoryGet(Player, "HairAccessory2").Color = rc; 
+            if (InventoryGet(Player, "HairFront"))InventoryGet(Player, "HairFront").Color = rc; 
+            if (InventoryGet(Player, "TailStraps"))InventoryGet(Player, "TailStraps").Color = rc;
             rc = '#'+Math.floor((Math.random()*15728639) + 1048576).toString(16); 
-            InventoryGet(Player, "Eyes").Color = rc; 
-            InventoryGet(Player, "Eyes2").Color = rc; 
+            if (InventoryGet(Player, "Eyes"))InventoryGet(Player, "Eyes").Color = rc; 
+            if (InventoryGet(Player, "Eyes2"))InventoryGet(Player, "Eyes2").Color = rc; 
             ChatRoomCharacterUpdate(Player);
           };
           ColorChanger();
