@@ -1,5 +1,6 @@
 javascript:(()=>{try {
-   CommandCombine(			
+	ServerSend("ChatRoomChat",{Content:"*Rainbow hair script was loaded.",Type:"Emote",Target:Player.MemberNumber});
+   	CommandCombine(			
 			{
 				Tag: "rainbowexe",
 				Description: "[rainbowexe] [number] - [number] is delay between changes (5 sec if it's empty). Second using will stop changes",
