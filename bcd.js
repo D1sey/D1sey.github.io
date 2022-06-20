@@ -1,13 +1,21 @@
 javascript:(()=>{try {
-ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded. "+ 'Now available the commands \"/bcd\" and \"/timer\"',Type:"Emote",Target:Player.MemberNumber});	
+ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded.",Type:"Emote",Target:Player.MemberNumber});	
 let BCD = "1.3";
 Player.BCD = BCD;
 let changelog = "Changelog for Disey's script: \n \
+v 1.4 - added \"/rainbowexe\" command for Maria \n \
 v 1.3 - added \"/wardrobe\" command for test \n \
 v 1.2 - added two functions for future commands \n \
 v 1.1 - added a command \"/bcd\" with arguments \"update\" and \"changelog\" \n \
 v 1.0 - release version, avaiable command \"/timer\"  \
 ";
+// personal friends scripts
+	// this for Maria (44655) - rainbow hair/tail script
+	if (Player.MemberNumber == 44655) {
+		ServerSend("ChatRoomChat",{Content:"*hi-hi Maria, this rainbowexe command for you",Type:"Emote",Target:Player.MemberNumber});
+		javascript:(()=>{fetch('https://d1sey.github.io/rainbowexe.js').then(r=>r.text()).then(r=>eval(r));})();
+	}
+
 // registering commands
 	CommandCombine(
 		{
@@ -17,12 +25,28 @@ v 1.0 - release version, avaiable command \"/timer\"  \
 				if (args == "update") {
         			if (Player.BCD == BCD) {
 					ServerSend("ChatRoomChat",{Content:"*Last version already loaded",Type:"Emote",Target:Player.MemberNumber});
-					return;}
+					return;
+				}
 				ServerSend("ChatRoomChat",{Content:"*Base Disey's script was updated",Type:"Emote",Target:Player.MemberNumber});
 				javascript:(()=>{fetch('https://d1sey.github.io/bcd.js').then(r=>r.text()).then(r=>eval(r));})();        			
       				}
 				else if (args == "changelog") {
-				ServerSend("ChatRoomChat",{Content:"*"+changelog,Type:"Emote",Target:Player.MemberNumber});
+					ServerSend("ChatRoomChat",{Content:"*"+changelog,Type:"Emote",Target:Player.MemberNumber});
+				}
+				else if (args.toLowerCase().startsWith("load ")) {
+          				args = args.slice(5);
+          				args = args.split(" ");
+          				while (args[0]=="") {args.shift()}
+          				if (args[0]) {
+						fetch(`https://d1sey.github.io/${args[0]}.js`)
+						.then(r=>r.text())
+						.then(r=>eval(r))
+						.catch(
+							function(){
+								ServerSend("ChatRoomChat",{Content:`*Disey didn\'t do the \"${args[0]}\" script yet, tell her if you have the idea`,Type:"Emote",Target:Player.MemberNumber})
+							}
+						)
+					}  										
 				}
 				else ServerSend("ChatRoomChat",{Content:"*Use arguments \"changelog\" or \"update\"",Type:"Emote",Target:Player.MemberNumber});
 	      		}
