@@ -37,7 +37,7 @@ CommandCombine({
     };
   if (m)
     {
-      if (m[0] == "/") m = m.slice(1);
+      if (m[0]=="0" && m*1==0) {for (let i=0;i<m.length;i++) {CharacterAppearanceStripLayer(p)};ChatRoomCharacterUpdate(p);CharacterRefresh(p);return};
       if (0 < m*1 && 1*m <= l) {o = 1*m-1;c = 1;w.push(" "+m+" - "+(Player.WardrobeCharacterNames[m*1-1]))}
       else if (1*m > l) {ServerSend("ChatRoomChat",{Content:"*You don't have so many wardrobe slots",Type:"Emote",Target:pl});return}
       else 
