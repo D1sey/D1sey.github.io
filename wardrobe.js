@@ -3,15 +3,15 @@ ServerSend("ChatRoomChat",{Content:'*Wardrobe was loaded. Now the command \"/war
 CommandCombine({
 			Tag: 'wardrobe',
     			Description: "How to use Disey\'s quick wardrobe: Write in the textbox \"/wardrobe\" with one of the follow options: \n\
-			A) You can use the slot number. \n\
-			B) You can use the complete name, part of the name or just a letter. \n\
-			C) You can search with numbers using \"-\" before it. \n\
-			# You can use \"0\" to strip one layer of clothes, \"00\" to strip two layers, etc.\n\
-			• Just using it without any text load the first slot. \n\
-			• If there are two or more coincidences, it display a list of all found outfits. \n\
-			• If there are more than 40 coincidences it ask for another keyword. \n\
-			• It works even if you are tied. \n\
-			• If you have selected target for whisper - this character will be dressed with chosen outfit (if you have access for this)",
+A) You can use the slot number. \n\
+B) You can use the complete name, part of the name or just a letter. \n\
+C) You can search with numbers using \"-\" before it. \n\
+# You can use \"0\" to strip one layer of clothes, \"00\" to strip two layers, etc.\n\
+• Just using it without any text load the first slot. \n\
+• If there are two or more coincidences, it display a list of all found outfits. \n\
+• If there are more than 40 coincidences it ask for another keyword. \n\
+• It works even if you are tied. \n\
+• If you have selected target for whisper - this character will be dressed with chosen outfit (if you have access for this)",
 			Action: (_, command) => {
 			let [, ...message] = command.split(" "),
       m = message?.join(" "),
