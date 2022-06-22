@@ -3,30 +3,38 @@ javascript:(()=>{try {
    	CommandCombine(			
 			{
 				Tag: "rainbowexe",
-				Description: "[rainbowexe] [number] - [number] is delay between changes (5 sec if it's empty). Second using will stop changes",
+				Description: "\"/rainbowexe [number] chaos\" - [number] is delay between changes (5 sec if it's empty). Chaos is chaos. Second using will stop changes.",
 				Action: (_, command) => {
-					let [, ...message] = command.split(" "), rc;
+					let [, ...message] = command.split(" "), pc = null, ch = false, rt = 1,
+          cl = ["Eyes", "Eyes2", "HairFront", "HairBack", "HairAccessory1", "HairAccessory2", "TailStraps", "Wings"];
           if (Player.rainbow) {Player.rainbow = NaN;return}
           else {
             if (message[0]*0+1) Player.rainbow = message[0]*1;
+            for (let i=0;i<message.length;i++) {if (message[i].toLowerCase().includes("chaos")) ch = true};
           	if (Player.rainbow < 0) Player.rainbow = Player.rainbow * -1;
             if (!Player.rainbow) Player.rainbow = 5;
           }
-          function ColorChanger() {
+					function ColorChanger() {
             if (!Player.rainbow) return;
             setTimeout(function() {
-              ColorChanger()},Player.rainbow*1000); 
-            rc = '#'+Math.floor((Math.random()*15728639) + 1048576).toString(16); 
-            if (InventoryGet(Player, "HairAccessory2")) InventoryGet(Player, "HairAccessory2").Color = rc; 
-            if (InventoryGet(Player, "HairFront"))InventoryGet(Player, "HairFront").Color = rc; 
-            if (InventoryGet(Player, "TailStraps"))InventoryGet(Player, "TailStraps").Color = rc;
-            rc = '#'+Math.floor((Math.random()*15728639) + 1048576).toString(16); 
-            if (InventoryGet(Player, "Eyes"))InventoryGet(Player, "Eyes").Color = rc; 
-            if (InventoryGet(Player, "Eyes2"))InventoryGet(Player, "Eyes2").Color = rc; 
+              ColorChanger()},Player.rainbow*1000*rt);
+            pc = '#'+Math.floor(Math.random()*16777216).toString(16).padStart(6, "0")
+            if (ch) {
+              rt = Math.floor((Math.random()*101)+50)/100;
+              pc = null;
+            }
+            cl.forEach(a=>{
+              if (InventoryGet(Player, a)) {
+                InventoryGet(Player, a).Color = [];
+                for (let i=0;i<5;i++) {
+                  InventoryGet(Player, a).Color[i] = pc ? pc : '#'+Math.floor(Math.random()*16777216).toString(16).padStart(6, "0")
+                }
+              }
+            })
             ChatRoomCharacterUpdate(Player);
           };
           ColorChanger();
-				},
-			},
-   )
+        },
+      },
+    )
 }catch(e){};})();
