@@ -1,8 +1,9 @@
 javascript:(()=>{try {
 ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded.",Type:"Emote",Target:Player.MemberNumber});	
-let BCD = "1.4.1";
+let BCD = "1.4.2";
 Player.BCD = BCD;
 let changelog = "Changelog for Disey's script: \n \
+v 1.4.2 - added random response to \"/rainbowexe\" and keywords after \"0\" argument \"/wardrobe\" command \n \
 v 1.4.1 - added chaos mode to \"/rainbowexe\" and \"0\" argument to \"/wardrobe\" command \n \
 v 1.4 - added \"/rainbowexe\" command for Maria \n \
 v 1.3 - added \"/wardrobe\" command for test \n \
