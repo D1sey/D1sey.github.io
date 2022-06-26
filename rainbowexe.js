@@ -46,6 +46,7 @@ javascript:(()=>{try {
             })
             ChatRoomCharacterUpdate(Player);
           };
+	  rp = rp[Math.floor(Math.random()*rp.length)];
 	  ServerSend("ChatRoomChat",{Content:rp,Type:"Emote"});
           ColorChanger();
         },
