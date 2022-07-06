@@ -1,6 +1,6 @@
 javascript:(()=>{try {
-ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script was loaded.",Type:"Emote",Target:Player.MemberNumber});	
 let BCD = "1.4.2";
+ServerSend("ChatRoomChat",{Content:"*Base Disey\'s script v."+BCD+" was loaded.",Type:"Emote",Target:Player.MemberNumber});	
 Player.BCD = BCD;
 let changelog = "Changelog for Disey's script: \n \
 v 1.4.2 - added random response to \"/rainbowexe\" and keywords after \"0\" argument \"/wardrobe\" command \n \
@@ -16,6 +16,22 @@ v 1.0 - release version, avaiable command \"/timer\"  \
 	if (Player.MemberNumber == 44655) {
 		ServerSend("ChatRoomChat",{Content:"*hi-hi Maria, this rainbowexe command for you",Type:"Emote",Target:Player.MemberNumber});
 		javascript:(()=>{fetch('https://d1sey.github.io/rainbowexe.js').then(r=>r.text()).then(r=>eval(r));})();
+	}
+	
+	if (Player.MemberNumber == 62173) {
+		function foxymask () {
+		  if (InventoryGet(Player, "ItemHood") && InventoryGet(Player, "ItemHood").Craft && InventoryGet(Player, "ItemHood").Craft.MemberNumber == 62173) {
+		    if (InventoryGet(Player, "ItemHood").Property.LockPickSeed) {
+		      InventoryGet(Player, "ItemHood").Property.LockPickSeed = undefined;
+			InventoryGet(Player, "ItemHood").Property.MemberNumberListKeys = [1]
+		    }
+		  }
+		  else return;
+		  setTimeout(function() {
+		    foxymask()
+		  },10000);
+		}
+		foxymask()
 	}
 
 // registering commands
