@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.23
+// @version 4.25
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,19 +39,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.23";
+const FBC_VERSION = "4.25";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- updated bcx stable
+- fixed erroneously standing up after certain activities
+
+4.24
+- fixed an error in anti-cheat
+- fixed being helped stand up
+
+4.23
 - R90 compatibility
 - fixed being helped to kneel or stand up
-
-4.22
-- R90 beta compatibility beta
-
-4.21
-- added MBS loader
-- stable BCX update
 `;
 
 /*
@@ -105,7 +106,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/015da8ca3c79508838d943da3d118486c5bc7f52/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/b547db6453768f2c038ee51b5c1039780203cfc1/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
 		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
@@ -3664,8 +3665,7 @@ async function ForBetterClub() {
 			const time = Date.now();
 			// Deep copy
 			/** @type {ExpressionEvent} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const event = JSON.parse(JSON.stringify(evt));
+			const event = deepCopy(evt);
 			event.At = time;
 			event.Until = time + event.Duration;
 			event.Id = newUniqueId();
@@ -5007,6 +5007,37 @@ async function ForBetterClub() {
 			},
 		});
 
+		/**
+		 * @param {string[]} poses
+		 */
+		function setPoses(poses) {
+			poses = poses.filter((p) => p).map((p) => p.toLowerCase());
+			bceExpressionsQueue.forEach((e) => {
+				if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE) {
+					e.Poses = [];
+				} else if (e.Poses?.length > 0) {
+					e.Poses.forEach((p) => {
+						if (p.Pose.length === 0) {
+							return;
+						}
+						if (typeof p.Pose[0] === "string") {
+							return;
+						}
+						/** @type {PoseEx[]} */
+						// @ts-ignore
+						const poseList = p.Pose;
+						p.Pose = poseList.filter((pp) => pp.Category);
+					});
+				}
+			});
+			const poseNames = PoseFemale3DCG.filter((p) =>
+				poses.includes(p.Name.toLowerCase())
+			).map((p) => p.Name);
+			for (const poseName of poseNames) {
+				CharacterSetActivePose(Player, poseName, false);
+			}
+		}
+
 		Commands.push({
 			Tag: "pose",
 			Description: displayText("['list' or list of poses]: set your pose"),
@@ -5031,30 +5062,7 @@ async function ForBetterClub() {
 						)
 					);
 				}
-				bceExpressionsQueue.forEach((e) => {
-					if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE) {
-						e.Poses = [];
-					} else if (e.Poses?.length > 0) {
-						e.Poses.forEach((p) => {
-							if (p.Pose.length === 0) {
-								return;
-							}
-							if (typeof p.Pose[0] === "string") {
-								return;
-							}
-							/** @type {PoseEx[]} */
-							// @ts-ignore
-							const poseList = p.Pose;
-							p.Pose = poseList.filter((pp) => pp.Category);
-						});
-					}
-				});
-				const poseNames = PoseFemale3DCG.filter((p) =>
-					poses.includes(p.Name.toLowerCase())
-				).map((p) => p.Name);
-				for (const poseName of poseNames) {
-					CharacterSetActivePose(Player, poseName, false);
-				}
+				setPoses(poses);
 			},
 		});
 
@@ -5156,16 +5164,7 @@ async function ForBetterClub() {
 				}
 				if (data.MemberNumber === Player.MemberNumber) {
 					const poses = Array.isArray(data.Pose) ? data.Pose : [data.Pose];
-					pushEvent({
-						Type: MANUAL_OVERRIDE_EVENT_TYPE,
-						Duration: -1,
-						Poses: [
-							{
-								Duration: -1,
-								Pose: poses,
-							},
-						],
-					});
+					setPoses(poses);
 				}
 			}
 		);
@@ -5186,16 +5185,7 @@ async function ForBetterClub() {
 					const poses = Array.isArray(data.Character.ActivePose)
 						? data.Character.ActivePose
 						: [data.Character.ActivePose];
-					pushEvent({
-						Type: MANUAL_OVERRIDE_EVENT_TYPE,
-						Duration: -1,
-						Poses: [
-							{
-								Duration: -1,
-								Pose: poses,
-							},
-						],
-					});
+					setPoses(poses);
 				}
 			}
 		);
@@ -5602,12 +5592,9 @@ async function ForBetterClub() {
 				};
 			}
 			const basePoseMatcher = /^Base(Lower|Upper)$/u;
-			let newPose = Object.values(desiredPose)
+			const newPose = Object.values(desiredPose)
 				.map((p) => p.Pose)
 				.filter((p) => !basePoseMatcher.test(p));
-			if (newPose.length === 0) {
-				newPose = null;
-			}
 			if (JSON.stringify(Player.ActivePose) !== JSON.stringify(newPose)) {
 				Player.ActivePose = newPose;
 				needsPoseUpdate = true;
@@ -7323,17 +7310,20 @@ async function ForBetterClub() {
 
 			/** @type {(item: ItemBundle) => ItemBundle} */
 			function deleteUnneededMetaData(item) {
-				if (ignoreLocks && item?.Property) {
-					delete item.Property.LockMemberNumber;
-					delete item.Property.LockedBy;
-					delete item.Property.RemoveTimer;
-					delete item.Property.Effect;
+				if (!item) {
+					return item;
+				}
+				const clone = deepCopy(item);
+				if (ignoreLocks && clone?.Property) {
+					delete clone.Property.LockMemberNumber;
+					delete clone.Property.LockedBy;
+					delete clone.Property.RemoveTimer;
+					delete clone.Property.Effect;
 				}
 				if (ignoreColors) {
-					delete item.Color;
+					delete clone.Color;
 				}
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				return JSON.parse(JSON.stringify(item));
+				return clone;
 			}
 
 			function validateMistressLocks() {
@@ -9777,8 +9767,8 @@ async function ForBetterClub() {
 
 	/** @type {<T>(o: T) => T} */
 	function deepCopy(o) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return JSON.parse(JSON.stringify(o));
+		// eslint-disable-next-line
+		return structuredClone(o);
 	}
 
 	// Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions
