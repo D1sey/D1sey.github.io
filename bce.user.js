@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.29
+// @version 4.30
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,19 +39,21 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.29";
-const settingsVersion = 45;
+const FBC_VERSION = "4.30";
+const settingsVersion = 46;
 
 const fbcChangelog = `${FBC_VERSION}
+- R92 compatibility
+  - Goggles considered glasses for blind without glasses
+- added new option to print friend presence notifications in chat
+- added advanced layering menu
+- massively reduced the amount of data saved in the profile cache
+
+4.29
 - added new option (enabled by default) to unlock all expiring locks on the same second
 
 4.28
 - added small patch to scroll chat to end after relogs
-
-4.27
-- added automatic clean-up for least recently seen saved profiles when approaching browser storage quota
-- fixed cyclic object error in profile saving
-- changed /profiles command to print up to 100 most recently seen profiles. Provide a more specific search for name or member number after the command to find older profiles
 `;
 
 /*
@@ -68,7 +70,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R91"];
+	const SUPPORTED_GAME_VERSIONS = ["R92"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -301,7 +303,7 @@ async function ForBetterClub() {
 		},
 		instantMessenger: {
 			label: "Instant messenger",
-			value: false,
+			value: true,
 			sideEffects: (newValue) => {
 				debug("instantMessenger", newValue);
 			},
@@ -311,7 +313,7 @@ async function ForBetterClub() {
 		},
 		augmentChat: {
 			label: "Chat Links and Embeds",
-			value: false,
+			value: true,
 			sideEffects: (newValue) => {
 				debug("augmentChat", newValue);
 			},
@@ -364,13 +366,24 @@ async function ForBetterClub() {
 				"Enables friend presence tracking and shows a notification when a friend logs in.",
 		},
 		friendOfflineNotifications: {
-			label: "Show friends going offline too (requires friend presence)",
+			label: "Show friends going offline too",
 			value: false,
 			sideEffects: (newValue) => {
 				debug("friendOfflineNotifications", newValue);
 			},
 			category: "chat",
-			description: "Shows a notification when a friend logs out.",
+			description:
+				"Shows a notification when a friend logs out. (Requires friend presence)",
+		},
+		friendNotificationsInChat: {
+			label: "Show friend presence notifications in chat, when possible",
+			value: false,
+			sideEffects: (newValue) => {
+				debug("friendNotificationsInChat", newValue);
+			},
+			category: "chat",
+			description:
+				"Shows friend presence notifications in chat, when possible. (Requires friend presence)",
 		},
 		pastProfiles: {
 			label: "Save & browse seen profiles (requires refresh)",
@@ -1085,12 +1098,12 @@ async function ForBetterClub() {
 			ActivitySetArousal: "3AE28123",
 			ActivitySetArousalTimer: "1342AFE2",
 			ActivityTimerProgress: "6CD388A7",
-			AppearanceClick: "6D043815",
+			AppearanceClick: "64C82387",
 			AppearanceExit: "AA300341",
 			AppearanceLoad: "A14CB302",
-			AppearanceRun: "24E07FA0",
+			AppearanceRun: "8C0005E2",
 			CharacterAppearanceWardrobeLoad: "A5B63A03",
-			CharacterBuildDialog: "EE68309E",
+			CharacterBuildDialog: "918170E7",
 			CharacterCompressWardrobe: "8D3B1AB1",
 			CharacterDecompressWardrobe: "A9FD29CC",
 			CharacterDelete: "398D1116",
@@ -1099,9 +1112,9 @@ async function ForBetterClub() {
 			CharacterNickname: "EB452E5E",
 			CharacterRefresh: "5BF9DA5A",
 			CharacterReleaseTotal: "396640D1",
-			CharacterSetActivePose: "D3186110",
+			CharacterSetActivePose: "5BCD2A9E",
 			CharacterSetCurrent: "FD267B9B",
-			CharacterSetFacialExpression: "AB7E8F62",
+			CharacterSetFacialExpression: "C794A455",
 			ChatRoomCharacterItemUpdate: "041F9B91",
 			ChatRoomCharacterUpdate: "9D0EEA39",
 			ChatRoomClearAllElements: "C49AA2C1",
@@ -1109,7 +1122,7 @@ async function ForBetterClub() {
 			ChatRoomCreateElement: "AD7CBE68",
 			ChatRoomCurrentTime: "A462DD3A",
 			ChatRoomDrawBackground: "597B062C",
-			ChatRoomDrawCharacterOverlay: "1B280F1F",
+			ChatRoomDrawCharacterOverlay: "06FB4CC3",
 			ChatRoomHTMLEntities: "0A7ADB1D",
 			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
@@ -1124,32 +1137,33 @@ async function ForBetterClub() {
 			CommandParse: "6E46F29E",
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
-			CommonSetScreen: "17692CD7",
-			CraftingClick: "0B915622",
+			CommonSetScreen: "E2AC00F4",
+			CraftingClick: "9CB5E895",
 			CraftingConvertSelectedToItem: "46CE5BE0",
-			CraftingRun: "ADEAFA91",
+			CraftingRun: "89AE0867",
 			DialogClick: "F4FCD7DD",
-			DialogDraw: "BBFB23E5",
+			DialogDraw: "2491ABC6",
 			DialogDrawItemMenu: "689891E5",
-			DialogLeave: "5C5F8D62",
+			DialogLeave: "04AF5C20",
 			DrawAssetPreview: "5BD59B42",
-			DrawBackNextButton: "B0DB9555",
-			DrawButton: "63FDE2B2",
-			DrawCharacter: "0A5772FA",
+			DrawBackNextButton: "9AF4BA37",
+			DrawButton: "A7023A82",
+			DrawCharacter: "CA0D50AF",
 			DrawCheckbox: "00FD87EB",
 			DrawImageEx: "3D3D74F5",
 			DrawImageResize: "8CF55F04",
-			DrawProcess: "C04ACAE2",
+			DrawProcess: "E60F65B5",
 			DrawText: "C1BF0F50",
 			DrawTextFit: "F9A1B11E",
-			ElementCreateInput: "2B2603E4",
-			ElementCreateTextArea: "9A16F87A",
+			ElementCreateInput: "562F83D4",
+			ElementCreateTextArea: "8721B388",
 			ElementIsScrolledToEnd: "1CC4FE11",
 			ElementPosition: "CC4E3C82",
 			ElementRemove: "60809E60",
 			ElementScrollToEnd: "1AC45575",
 			ElementValue: "4F26C62F",
 			FriendListShowBeep: "6C0449BB",
+			GameRun: "3525631A",
 			GLDrawResetCanvas: "81214642",
 			InformationSheetRun: "E248ADC7",
 			InventoryGet: "E666F671",
@@ -1169,10 +1183,9 @@ async function ForBetterClub() {
 			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
 			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
 			InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
-			LoginClick: "8A3B973F",
-			LoginRun: "B40EF142",
+			LoginClick: "EE94BEC7",
+			LoginRun: "C3926C4F",
 			LoginSetSubmitted: "C88F4A8E",
-			MainRun: "B09F3B95",
 			MouseIn: "CA8B839E",
 			NotificationDrawFavicon: "AB88656B",
 			NotificationRaise: "E8F29646",
@@ -1188,7 +1201,7 @@ async function ForBetterClub() {
 			ServerClickBeep: "3E6277BE",
 			ServerConnect: "845E50A6",
 			ServerDisconnect: "06C1A6B0",
-			ServerInit: "BBE09687",
+			ServerInit: "FEC6457F",
 			ServerOpenFriendList: "FA8D3CDE",
 			ServerSend: "90A61F57",
 			SkillGetWithRatio: "16620445",
@@ -1203,12 +1216,12 @@ async function ForBetterClub() {
 			StruggleStrengthProcess: "D20CF698",
 			TextGet: "4DDE5794",
 			TextLoad: "ADF7C890",
-			TimerInventoryRemove: "FFDD61B9",
-			TimerProcess: "EAF648B7",
+			TimerInventoryRemove: "226C417C",
+			TimerProcess: "52458C63",
 			TitleExit: "F13F533C",
 			WardrobeClick: "E96F7F63",
 			WardrobeExit: "EE83FF29",
-			WardrobeFastLoad: "545CB8FD",
+			WardrobeFastLoad: "38627DC2",
 			WardrobeFastSave: "B62385C1",
 			WardrobeFixLength: "CA3334C6",
 			WardrobeLoad: "C343A4C7",
@@ -1216,15 +1229,6 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
-			case "R91Beta2":
-			case "R91Beta3":
-			case "R91":
-				hashes.CharacterSetActivePose = "5BCD2A9E";
-				hashes.CharacterSetFacialExpression = "C794A455";
-				hashes.CraftingClick = "A78F0A48";
-				hashes.LoginClick = "EE94BEC7";
-				hashes.LoginRun = "C3926C4F";
-				break;
 			default:
 				break;
 		}
@@ -1744,7 +1748,7 @@ async function ForBetterClub() {
 		const expectedFrameTime = (ms) => (1000 / ms) | 0;
 
 		SDK.hookFunction(
-			"MainRun",
+			"GameRun",
 			HOOK_PRIORITIES.Observe,
 			/** @type {(args: DOMHighResTimeStamp[], next: (args: DOMHighResTimeStamp[]) => void) => void} */
 			(args, next) => {
@@ -1761,7 +1765,7 @@ async function ForBetterClub() {
 						ftl = 60;
 					}
 					if (lastFrame + expectedFrameTime(ftl) > time) {
-						requestAnimationFrame(MainRun);
+						requestAnimationFrame(GameRun);
 						return;
 					}
 				}
@@ -5746,19 +5750,171 @@ async function ForBetterClub() {
 			.map((a) => a.Name)
 			.filter((a) => !ignoredColorCopiableAssets.includes(a));
 
-		let lastItem = null;
 		const layerPriority = "bce_LayerPriority";
+
+		/** @type {(C: Character, item: Item) => boolean} */
+		function assetVisible(C, item) {
+			return item && !!C.AppearanceLayers.find((a) => a.Asset === item.Asset);
+		}
+
+		/** @type {(C: Character, item: Item) => boolean} */
+		function assetWorn(C, item) {
+			return item && !!C.Appearance.find((a) => a === item);
+		}
+
+		/** @type {Record<string, number>} */
+		let layerPriorities = {};
+		let advancedPriorities = false;
 
 		/** @type {(item: Item) => void} */
 		function updateItemPriorityFromLayerPriorityInput(item) {
 			if (item) {
-				const priority = parseInt(ElementValue(layerPriority));
-				if (!item.Property) {
-					item.Property = { OverridePriority: priority };
+				if (advancedPriorities) {
+					const priorities = Object.entries(layerPriorities);
+					if (!item.Property) {
+						item.Property = { OverridePriority: {} };
+					} else {
+						item.Property.OverridePriority = {};
+					}
+					for (const [layer, priority] of priorities) {
+						item.Property.OverridePriority[layer] = priority;
+					}
 				} else {
-					item.Property.OverridePriority = priority;
+					const priority = parseInt(ElementValue(layerPriority));
+					if (!item.Property) {
+						item.Property = { OverridePriority: priority };
+					} else {
+						item.Property.OverridePriority = priority;
+					}
 				}
+				CharacterRefresh(preview, false, false);
 			}
+		}
+
+		/** @type {"Priority" | "Difficulty"} */
+		let priorityField = "Priority",
+			prioritySubscreen = false;
+		let layerPage = 0;
+		const FIELDS = Object.freeze({
+			/** @type {"Priority"} */
+			Priority: "Priority",
+			/** @type {"Difficulty"} */
+			Difficulty: "Difficulty",
+		});
+
+		const preview = CharacterLoadSimple(
+			`LayeringPreview-${Player.MemberNumber}`
+		);
+
+		/**
+		 * @param {string} layerName
+		 */
+		function layerElement(layerName) {
+			return `${layerPriority}___${layerName}`;
+		}
+
+		patchFunction(
+			"DrawCharacter",
+			{
+				"var OverrideDark = ":
+					"var OverrideDark = C.AccountName.startsWith('LayeringPreview') || ",
+			},
+			"Layering preview affected by blindness"
+		);
+
+		/** @type {(C: Character, FocusItem: Item, field: "Priority" | "Difficulty") => void} */
+		function prioritySubscreenEnter(C, FocusItem, field) {
+			DialogFocusItem = FocusItem;
+			prioritySubscreen = true;
+			priorityField = field;
+			let initialValue = 0;
+			switch (field) {
+				case FIELDS.Priority:
+					initialValue = C.AppearanceLayers.find(
+						(a) => a.Asset === FocusItem.Asset
+					).Priority;
+					layerPriorities = {};
+					for (const layer of FocusItem.Asset.Layer) {
+						if (!layer.Name) {
+							continue;
+						}
+						const drawnLayer = C.AppearanceLayers.find(
+							(a) => a.Asset === FocusItem.Asset && a.Name === layer.Name
+						);
+						let priority = layer.Priority ?? FocusItem.Asset.Priority ?? -1;
+						if (
+							typeof FocusItem?.Property?.OverridePriority === "object" &&
+							layer.Name in FocusItem.Property.OverridePriority
+						) {
+							priority = FocusItem?.Property?.OverridePriority[layer.Name];
+						}
+						if (drawnLayer) {
+							priority = drawnLayer.Priority ?? priority;
+						}
+						layerPriorities[layer.Name] = priority;
+						const el = ElementCreateInput(
+							layerElement(layer.Name),
+							"number",
+							"",
+							"20"
+						);
+						ElementValue(layerElement(layer.Name), priority.toString());
+						el.setAttribute("data-layer", layer.Name);
+						el.className = layerPriority;
+						// eslint-disable-next-line no-loop-func -- layerPriorities scope is outside the function, ElementValue is a global function
+						el.addEventListener("change", () => {
+							layerPriorities[layer.Name] = parseInt(
+								ElementValue(layerElement(layer.Name))
+							);
+							updateItemPriorityFromLayerPriorityInput(
+								InventoryGet(preview, FocusItem.Asset.Group.Name)
+							);
+						});
+					}
+					hideAllLayerElements();
+					if (typeof FocusItem?.Property?.OverridePriority === "object") {
+						advancedPriorities = true;
+					}
+					break;
+				case FIELDS.Difficulty:
+					initialValue = C.Appearance.find((a) => a === FocusItem).Difficulty;
+					break;
+				default:
+					break;
+			}
+			ElementCreateInput(layerPriority, "number", "", "20");
+			ElementValue(layerPriority, initialValue.toString());
+			layerPage = 0;
+			preview.Appearance = C.Appearance.slice();
+			CharacterRefresh(preview, false, false);
+			document.getElementById(layerPriority).addEventListener("change", () => {
+				updateItemPriorityFromLayerPriorityInput(
+					InventoryGet(preview, FocusItem.Asset.Group.Name)
+				);
+			});
+		}
+		function prioritySubscreenExit() {
+			prioritySubscreen = false;
+			ElementRemove(layerPriority);
+			document.querySelectorAll(`.${layerPriority}`).forEach((e) => {
+				ElementRemove(e.id);
+			});
+			DialogFocusItem = null;
+		}
+
+		for (const func of ["DialogLeave", "DialogLeaveItemMenu"]) {
+			SDK.hookFunction(
+				func,
+				HOOK_PRIORITIES.OverrideBehaviour,
+				// eslint-disable-next-line no-loop-func
+				(args, next) => {
+					if (prioritySubscreen) {
+						prioritySubscreenExit();
+						return;
+					}
+					next(args);
+				}
+			);
 		}
 
 		SDK.hookFunction(
@@ -5785,43 +5941,27 @@ async function ForBetterClub() {
 
 		SDK.hookFunction(
 			"AppearanceRun",
-			HOOK_PRIORITIES.AddBehaviour,
+			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
+				if (prioritySubscreen) {
+					prioritySubscreenDraw();
+					return null;
+				}
 				const ret = next(args);
 				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
-					if (CharacterAppearanceMode === "Cloth") {
-						DrawText(displayText("Priority"), 70, 35, "White", "Black");
-						ElementPosition(layerPriority, 60, 105, 100);
+					const item = C.Appearance.find((a) => a.Asset.Group === C.FocusGroup);
+					if (CharacterAppearanceMode === "Cloth" && assetVisible(C, item)) {
 						DrawButton(
 							110,
 							70,
-							90,
-							90,
+							52,
+							52,
 							"",
 							"White",
-							"Icons/Accept.png",
-							displayText("Set Priority")
+							ICONS.LAYERS,
+							displayText("Modify layering priority")
 						);
-						const item = C.Appearance.find(
-							(a) => a.Asset.Group === C.FocusGroup
-						);
-						if (!lastItem || lastItem !== item) {
-							if (!item) {
-								ElementValue(layerPriority, "");
-							} else {
-								ElementValue(
-									layerPriority,
-									(
-										C.AppearanceLayers.find((a) => a.Asset === item.Asset)
-											?.Priority || 0
-									).toString()
-								);
-							}
-						}
-						lastItem = item;
-					} else {
-						ElementPosition(layerPriority, -1000, -1000, 0);
 					}
 				}
 				return ret;
@@ -5830,83 +5970,27 @@ async function ForBetterClub() {
 
 		SDK.hookFunction(
 			"AppearanceClick",
-			HOOK_PRIORITIES.AddBehaviour,
+			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
 				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
-					if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode === "Cloth") {
-						const item = C.Appearance.find(
-							(a) => a.Asset.Group?.Name === C.FocusGroup?.Name
-						);
-						updateItemPriorityFromLayerPriorityInput(item);
-						CharacterRefresh(C, false);
+					const item = C.Appearance.find(
+						(a) => a.Asset.Group?.Name === C.FocusGroup?.Name
+					);
+					if (prioritySubscreen) {
+						prioritySubscreenClick(C, item);
+						return null;
+					} else if (
+						MouseIn(110, 70, 52, 52) &&
+						CharacterAppearanceMode === "Cloth" &&
+						assetVisible(C, item)
+					) {
+						prioritySubscreenEnter(C, item, FIELDS.Priority);
 					}
 				}
 				return next(args);
 			}
 		);
-
-		/** @type {(C: Character, item: Item) => boolean} */
-		function assetVisible(C, item) {
-			return item && !!C.AppearanceLayers.find((a) => a.Asset === item.Asset);
-		}
-
-		/** @type {(C: Character, item: Item) => boolean} */
-		function assetWorn(C, item) {
-			return item && !!C.Appearance.find((a) => a === item);
-		}
-
-		/** @type {"Priority" | "Difficulty"} */
-		let priorityField = "Priority",
-			prioritySubscreen = false;
-		const FIELDS = Object.freeze({
-			/** @type {"Priority"} */
-			Priority: "Priority",
-			/** @type {"Difficulty"} */
-			Difficulty: "Difficulty",
-		});
-
-		/** @type {(C: Character, FocusItem: Item, field: "Priority" | "Difficulty") => void} */
-		function prioritySubscreenEnter(C, FocusItem, field) {
-			DialogFocusItem = FocusItem;
-			prioritySubscreen = true;
-			priorityField = field;
-			let initialValue = 0;
-			switch (field) {
-				case FIELDS.Priority:
-					initialValue = C.AppearanceLayers.find(
-						(a) => a.Asset === FocusItem.Asset
-					).Priority;
-					break;
-				case FIELDS.Difficulty:
-					initialValue = C.Appearance.find((a) => a === FocusItem).Difficulty;
-					break;
-				default:
-					break;
-			}
-			ElementCreateInput(layerPriority, "number", "", "20");
-			ElementValue(layerPriority, initialValue.toString());
-		}
-		function prioritySubscreenExit() {
-			prioritySubscreen = false;
-			ElementRemove(layerPriority);
-			DialogFocusItem = null;
-		}
-
-		for (const func of ["DialogLeave", "DialogLeaveItemMenu"]) {
-			SDK.hookFunction(
-				func,
-				HOOK_PRIORITIES.OverrideBehaviour,
-				// eslint-disable-next-line no-loop-func
-				(args, next) => {
-					if (prioritySubscreen) {
-						prioritySubscreenExit();
-						return;
-					}
-					next(args);
-				}
-			);
-		}
 
 		SDK.hookFunction(
 			"DialogDrawItemMenu",
@@ -5963,6 +6047,98 @@ async function ForBetterClub() {
 			}
 		);
 
+		/**
+		 * @returns {[number, number, number, number]}
+		 */
+		function priorityAcceptButtonPosition() {
+			return advancedPriorities ? [1715, 75, 90, 90] : [900, 280, 90, 90];
+		}
+
+		function hideAllLayerElements() {
+			const layerNames = Object.keys(layerPriorities);
+			for (let i = 0; i < layerNames.length; i++) {
+				ElementPosition(layerElement(layerNames[i]), -1000, -1000, 0, 0);
+			}
+		}
+
+		const layersPerColumn = 10;
+		const layersPerPage = layersPerColumn * 2;
+		function prioritySubscreenDraw() {
+			DrawCharacter(preview, 1300, 100, 0.9, false);
+
+			const layerNames = Object.keys(layerPriorities);
+			if (priorityField === FIELDS.Priority && layerNames.length > 0) {
+				DrawCheckbox(100, 50, 64, 64, "", advancedPriorities, false, "White");
+				drawTextFitLeft(
+					displayText("Adjust individual layers"),
+					174,
+					82,
+					400,
+					"White",
+					"Black"
+				);
+			}
+			if (advancedPriorities) {
+				DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
+				drawTextFitLeft(
+					`${layerPage + 1} / ${Math.ceil(layerNames.length / layersPerPage)}`,
+					1715,
+					235,
+					90,
+					"White",
+					"Black"
+				);
+				ElementPosition(layerPriority, -1000, -1000, 0, 0);
+				for (let i = 0; i < layersPerPage && i < layerNames.length; i++) {
+					const layerName = layerNames[i + layerPage * layersPerPage];
+					const x = 200 + Math.floor(i / layersPerColumn) * 500,
+						y = 160 + (i % layersPerColumn) * 70;
+					ElementPosition(layerElement(layerName), x, y, 100);
+					drawTextFitLeft(layerName, x + 50, y, 400, "White", "Black");
+				}
+			} else {
+				// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
+				DrawText(
+					displayText(`Set item ${priorityField}`),
+					950,
+					150,
+					"White",
+					"Black"
+				);
+				ElementPosition(layerPriority, 950, 230, 100);
+				hideAllLayerElements();
+			}
+			DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
+			DrawButton(
+				...priorityAcceptButtonPosition(),
+				"",
+				"White",
+				"Icons/Accept.png",
+				// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
+				displayText(`Set ${priorityField}`)
+			);
+		}
+
+		/**
+		 * @param {Character} C
+		 * @param {Item} focusItem
+		 */
+		function prioritySubscreenClick(C, focusItem) {
+			if (MouseIn(100, 50, 64, 64)) {
+				advancedPriorities = !advancedPriorities;
+			} else if (MouseIn(1815, 75, 90, 90)) {
+				prioritySubscreenExit();
+			} else if (MouseIn(...priorityAcceptButtonPosition())) {
+				savePrioritySubscreenChanges(C, focusItem);
+			} else if (advancedPriorities && MouseIn(1815, 180, 90, 90)) {
+				layerPage++;
+				if (layerPage * layersPerPage >= Object.keys(layerPriorities).length) {
+					layerPage = 0;
+				}
+				hideAllLayerElements();
+			}
+		}
+
 		SDK.hookFunction(
 			"DialogDraw",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -5972,27 +6148,7 @@ async function ForBetterClub() {
 				if (prioritySubscreen) {
 					if (canAccessLayeringMenus()) {
 						if (focusItem) {
-							// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
-							DrawText(
-								displayText(`Set item ${priorityField}`),
-								950,
-								150,
-								"White",
-								"Black"
-							);
-							DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
-							ElementPosition(layerPriority, 950, 210, 100);
-							DrawButton(
-								900,
-								280,
-								90,
-								90,
-								"",
-								"White",
-								"Icons/Accept.png",
-								// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
-								displayText(`Set ${priorityField}`)
-							);
+							prioritySubscreenDraw();
 							return null;
 						}
 						prioritySubscreenExit();
@@ -6015,11 +6171,7 @@ async function ForBetterClub() {
 					focusItem = InventoryGet(C, C.FocusGroup?.Name);
 				if (focusItem) {
 					if (prioritySubscreen) {
-						if (MouseIn(1815, 75, 90, 90)) {
-							prioritySubscreenExit();
-						} else if (MouseIn(900, 280, 90, 90)) {
-							savePrioritySubscreenChanges(C, focusItem);
-						}
+						prioritySubscreenClick(C, focusItem);
 						return null;
 					}
 					if (
@@ -6195,16 +6347,16 @@ async function ForBetterClub() {
 						: ICONS.USER;
 					DrawImageResize(
 						icon,
-						CharX + 275 * Zoom,
+						CharX + 270 * Zoom,
 						CharY,
-						50 * Zoom,
-						50 * Zoom
+						40 * Zoom,
+						40 * Zoom
 					);
 					DrawTextFit(
 						/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
-						CharX + 300 * Zoom,
-						CharY + 40 * Zoom,
-						50 * Zoom,
+						CharX + 290 * Zoom,
+						CharY + 30 * Zoom,
+						40 * Zoom,
 						DEVS.includes(C.MemberNumber) ? "#b33cfa" : "White",
 						"Black"
 					);
@@ -6214,10 +6366,10 @@ async function ForBetterClub() {
 					) {
 						DrawImageResize(
 							ICONS.MUTE,
-							CharX + 75 * Zoom,
-							CharY + 50 * Zoom,
-							50 * Zoom,
-							50 * Zoom
+							CharX + 70 * Zoom,
+							CharY + 40 * Zoom,
+							40 * Zoom,
+							40 * Zoom
 						);
 					}
 				}
@@ -7222,6 +7374,7 @@ async function ForBetterClub() {
 					"InteractiveVisor",
 					"InteractiveVRHeadset",
 					"FuturisticMask",
+					"Goggles",
 				],
 				hasGlasses = !!Player.Appearance.find((a) =>
 					glasses.includes(a.Asset.Name)
@@ -7240,7 +7393,7 @@ async function ForBetterClub() {
 			}
 		}
 
-		SDK.hookFunction("MainRun", HOOK_PRIORITIES.Observe, (args, next) => {
+		SDK.hookFunction("GameRun", HOOK_PRIORITIES.Observe, (args, next) => {
 			checkBlindness();
 			return next(args);
 		});
@@ -7304,9 +7457,16 @@ async function ForBetterClub() {
 							return `${MemberName} (${MemberNumber})`;
 						})
 						.join(", ");
-					fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
-						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
-					});
+					if (
+						fbcSettings.friendNotificationsInChat &&
+						CurrentScreen === "ChatRoom"
+					) {
+						fbcChatNotify(displayText(`Now online: $list`, { $list: list }));
+					} else {
+						fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
+							ClickAction: BEEP_CLICK_ACTIONS.FriendList,
+						});
+					}
 				}
 				if (fbcSettings.friendOfflineNotifications && offlineFriends.length) {
 					const list = offlineFriends
@@ -7317,9 +7477,20 @@ async function ForBetterClub() {
 							return `${MemberName} (${MemberNumber})`;
 						})
 						.join(", ");
-					fbcNotify(displayText(`Now offline: $list`, { $list: list }), 5000, {
-						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
-					});
+					if (
+						fbcSettings.friendNotificationsInChat &&
+						CurrentScreen === "ChatRoom"
+					) {
+						fbcChatNotify(displayText(`Now offline: $list`, { $list: list }));
+					} else {
+						fbcNotify(
+							displayText(`Now offline: $list`, { $list: list }),
+							5000,
+							{
+								ClickAction: BEEP_CLICK_ACTIONS.FriendList,
+							}
+						);
+					}
 				}
 				lastFriends = data.Result;
 			}
@@ -9241,6 +9412,24 @@ async function ForBetterClub() {
 
 			const name = characterBundle.Name;
 			const nick = characterBundle.Nickname;
+
+			// Delete unnecessary data
+			const unnecessaryFields = [
+				"ActivePose",
+				"Inventory",
+				"BlockItems",
+				"LimitedItems",
+				"FavoriteItems",
+				"ArousalSettings",
+				"OnlineSharedSettings",
+				"WhiteList",
+				"BlackList",
+				"Crafting",
+			];
+			for (const field of unnecessaryFields) {
+				delete characterBundle[field];
+			}
+
 			debug(`saving profile of ${nick} (${name})`);
 			try {
 				await profiles.put({
@@ -9827,7 +10016,7 @@ async function ForBetterClub() {
 	/** @type {(cb: () => void, intval: number) => void} */
 	function createTimer(cb, intval) {
 		let lastTime = Date.now();
-		SDK.hookFunction("MainRun", HOOK_PRIORITIES.Top, (args, next) => {
+		SDK.hookFunction("GameRun", HOOK_PRIORITIES.Top, (args, next) => {
 			if (Date.now() - lastTime > intval) {
 				lastTime = Date.now();
 				cb();
