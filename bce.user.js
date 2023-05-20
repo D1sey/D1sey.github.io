@@ -1,7 +1,8 @@
+/* eslint-disable no-inline-comments */
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.32
+// @version 4.33
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -15,11 +16,9 @@
 // ==/UserScript==
 // @ts-check
 // eslint-disable-next-line
+/// <reference path="./node_modules/@total-typescript/ts-reset/dist/recommended.d.ts"/>
+// eslint-disable-next-line
 /// <reference path="./bce.d.ts" />
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-undef */
-/* eslint-disable no-implicit-globals */
-/* eslint-disable no-alert */
 
 /**
  *     BCE/FBC
@@ -39,22 +38,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.32";
+const FBC_VERSION = "4.33";
 const settingsVersion = 46;
 
 const fbcChangelog = `${FBC_VERSION}
+- added erection control to default arousal expressions. See https://gitlab.com/Sidiousious/bce/-/blob/main/bce-custom-expressions-example.user.js for customization instructions.
+- fixed a type error in extended wardrobe loading
+
+4.32
 - updated stable bcx
 
 4.31
 - fixed a bug where trying to layer a single-layer item after modifying multiple layers would cause the menu to break
 - updated stable bcx
-
-4.30
-- R92 compatibility
-  - Goggles considered glasses for blind without glasses
-- added new option to print friend presence notifications in chat
-- added advanced layering menu
-- massively reduced the amount of data saved in the profile cache
 `;
 
 /*
@@ -72,7 +68,7 @@ async function ForBetterClub() {
 	"use strict";
 
 	const SUPPORTED_GAME_VERSIONS = ["R92"];
-	const CAPABILITIES = ["clubslave"];
+	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
 
@@ -136,14 +132,12 @@ async function ForBetterClub() {
 		TIMER_INPUT_ID = "bce_timerInput",
 		WHISPER_CLASS = "bce-whisper-input";
 
-	const EMBED_TYPE = Object.freeze({
-		/** @type {"img"} */
+	const EMBED_TYPE = /** @type {const} */ ({
 		Image: "img",
-		/** @type {""} */
 		None: "",
 	});
 
-	/** @type {Record<string, "none" | "external" | "stable" | "devel">} */
+	/** @type {Record<"BCX" | "EBCH" | "MBS", "none" | "external" | "stable" | "devel">} */
 	const addonTypes = {
 		BCX: "none",
 		EBCH: "none",
@@ -178,14 +172,12 @@ async function ForBetterClub() {
 	};
 
 	/**
-	 * @type {Settings}
+	 * @type {Record<keyof defaultSettings, string | boolean> & {version?: number}}
 	 */
+	// @ts-ignore -- this is fully initialized in loadSettings
 	let fbcSettings = {};
 
-	/**
-	 * @type {Readonly<DefaultSettings>}
-	 */
-	const defaultSettings = {
+	const defaultSettings = /** @type {const} */ ({
 		animationEngine: {
 			label: "Animation Engine",
 			sideEffects: (newValue) => {
@@ -831,9 +823,7 @@ async function ForBetterClub() {
 					if (!isString(newValue)) {
 						throw new Error("expected string for buttplugDevices");
 					}
-					/** @type {ToySetting[]} */
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-					const devices = JSON.parse(newValue);
+					const devices = /** @type {ToySetting[]} */ (JSON.parse(newValue));
 					if (!Array.isArray(devices)) {
 						throw new Error("expected array for devices");
 					}
@@ -847,7 +837,7 @@ async function ForBetterClub() {
 			category: "hidden",
 			description: "",
 		},
-	};
+	});
 
 	/** @type {SocketEventListenerRegister} */
 	const listeners = [];
@@ -881,21 +871,20 @@ async function ForBetterClub() {
 	const bceSettingKey = () => `bce.settings.${Player?.AccountName}`;
 
 	/**
-	 * @type {() => Promise<Settings>}
+	 * @type {() => Promise<typeof fbcSettings>}
 	 */
 	const bceLoadSettings = async () => {
 		await waitFor(() => !!Player?.AccountName);
 		const key = bceSettingKey();
 		debug("loading settings");
 		if (!settingsLoaded()) {
-			/** @type {Settings} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			let settings = JSON.parse(localStorage.getItem(key));
-
-			/** @type {Settings} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const onlineSettings = JSON.parse(
-				LZString.decompressFromBase64(Player.OnlineSettings.BCE) || null
+			let settings = /** @type {typeof fbcSettings} */ (
+				JSON.parse(localStorage.getItem(key))
+			);
+			const onlineSettings = /** @type {typeof fbcSettings} */ (
+				JSON.parse(
+					LZString.decompressFromBase64(Player.OnlineSettings.BCE) || null
+				)
 			);
 			if (
 				onlineSettings?.version >= settings?.version ||
@@ -906,13 +895,13 @@ async function ForBetterClub() {
 			}
 			if (!settings) {
 				debug("no settings", key);
+				// @ts-ignore -- this is fully populated in the loop below
 				settings = {};
 			}
 
-			for (const setting in defaultSettings) {
-				if (!Object.prototype.hasOwnProperty.call(defaultSettings, setting)) {
-					continue;
-				}
+			for (const setting of /** @type {(keyof defaultSettings)[]} */ (
+				Object.keys(defaultSettings)
+			)) {
 				if (!(setting in settings)) {
 					if (setting === "activityExpressions" && "expressions" in settings) {
 						settings[setting] = settings.expressions;
@@ -949,11 +938,18 @@ async function ForBetterClub() {
 		});
 	};
 
+	/**
+	 * @param {string} key
+	 * @returns {key is keyof typeof defaultSettings}
+	 */
+	function isDefaultSettingKey(key) {
+		return key in defaultSettings;
+	}
+
 	function postSettings() {
 		debug("handling settings side effects");
 		for (const [k, v] of Object.entries(fbcSettings)) {
-			if (k in defaultSettings) {
-				// @ts-ignore
+			if (isDefaultSettingKey(k)) {
 				defaultSettings[k].sideEffects(v);
 			}
 		}
@@ -1094,7 +1090,7 @@ async function ForBetterClub() {
 	 * @type {(gameVersion: string) => Readonly<{ [key: string]: string }>}
 	 */
 	const expectedHashes = (gameVersion) => {
-		const hashes = {
+		const hashes = /** @type {const} */ ({
 			ActivityChatRoomArousalSync: "21318CAF",
 			ActivitySetArousal: "3AE28123",
 			ActivitySetArousalTimer: "1342AFE2",
@@ -1227,7 +1223,7 @@ async function ForBetterClub() {
 			WardrobeFixLength: "CA3334C6",
 			WardrobeLoad: "C343A4C7",
 			WardrobeRun: "9616EB3A",
-		};
+		});
 
 		switch (gameVersion) {
 			default:
@@ -1387,8 +1383,12 @@ async function ForBetterClub() {
 	w.bceSendAction = fbcSendAction;
 
 	w.bceSettingValue = (key) => fbcSettingValue(key);
-	w.fbcSettingValue = (key) =>
-		key in fbcSettings ? fbcSettings[key] : defaultSettings[key].value;
+	w.fbcSettingValue = (key) => {
+		if (isDefaultSettingKey(key)) {
+			return fbcSettings[key];
+		}
+		return false;
+	};
 
 	w.bceAnimationEngineEnabled = () => !!fbcSettings.animationEngine;
 
@@ -1835,16 +1835,16 @@ async function ForBetterClub() {
 			{
 				"if (Character[C].IsPlayer() || Character[C].IsNpc())":
 					"if (Character[C].IsPlayer() || Character[C].IsNpc()) { let fbcLocks = [];",
-				ServerSend: `fbcLocks.push(Dictionary); if (!bceSettingValue("timerLockMassExpiry")) ServerSend`,
+				ServerSend: `fbcLocks.push(Dictionary); if (!fbcSettingValue("timerLockMassExpiry")) ServerSend`,
 				"InventoryRemove(Character[C], group.Name);": `{
 					InventoryRemove(Character[C], group.Name);
-					if (bceSettingValue("timerLockMassExpiry")) {
+					if (fbcSettingValue("timerLockMassExpiry")) {
 						A--;
 					}
 				}`,
-				"// Sync with the server and exit": `if (bceSettingValue("timerLockMassExpiry")) continue; // Sync with the server and exit`,
+				"// Sync with the server and exit": `if (fbcSettingValue("timerLockMassExpiry")) continue; // Sync with the server and exit`,
 				"}\n\t\t\t}": `}\n\t\t\t}
-				if (bceSettingValue("timerLockMassExpiry") && Character[C].IsPlayer() && fbcLocks.length > 0) {
+				if (fbcSettingValue("timerLockMassExpiry") && Character[C].IsPlayer() && fbcLocks.length > 0) {
 					if (fbcLocks.length > 1) {
 						fbcSendAction(\`\${fbcLocks.length} timer locks on \${CharacterNickname(Player)} fall off.\`)
 					} else {
@@ -1863,7 +1863,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscLoversTimerPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for lover locks."
 		);
@@ -1871,7 +1871,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscLoversTimerPadlockClick",
 			{
 				"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
 			},
 			"Accurate timer inputs are not available for lover locks."
 		);
@@ -1880,7 +1880,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscMistressTimerPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for mistress locks."
 		);
@@ -1888,7 +1888,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscMistressTimerPadlockClick",
 			{
 				"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
 			},
 			"Accurate timer inputs are not available for mistress locks."
 		);
@@ -1897,7 +1897,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscOwnerTimerPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for owner locks."
 		);
@@ -1905,7 +1905,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscOwnerTimerPadlockClick",
 			{
 				"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
 			},
 			"Accurate timer inputs are not available for owner locks."
 		);
@@ -1914,7 +1914,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscTimerPasswordPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for password locks."
 		);
@@ -1922,7 +1922,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscTimerPasswordPadlockClick",
 			{
 				"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
 			},
 			"Accurate timer inputs are not available for password locks."
 		);
@@ -2041,18 +2041,18 @@ async function ForBetterClub() {
 			};
 		};
 
-		const timerLoadMethods = [
+		const timerLoadMethods = /** @type {const} */ ([
 			"InventoryItemMiscLoversTimerPadlockLoad",
 			"InventoryItemMiscMistressTimerPadlockLoad",
 			"InventoryItemMiscOwnerTimerPadlockLoad",
 			"InventoryItemMiscTimerPasswordPadlockLoad",
-		];
-		const timerExitMethods = [
+		]);
+		const timerExitMethods = /** @type {const} */ ([
 			"InventoryItemMiscLoversTimerPadlockExit",
 			"InventoryItemMiscMistressTimerPadlockExit",
 			"InventoryItemMiscOwnerTimerPadlockExit",
 			"InventoryItemMiscTimerPasswordPadlockExit",
-		];
+		]);
 
 		for (const fn of timerLoadMethods) {
 			SDK.hookFunction(
@@ -2246,11 +2246,11 @@ async function ForBetterClub() {
 						return;
 					}
 					try {
-						/** @type {ItemBundle[]} */
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						const bundle = bundleString.startsWith("[")
-							? JSON.parse(bundleString)
-							: JSON.parse(LZString.decompressFromBase64(bundleString));
+						const bundle = /** @type {ItemBundle[]} */ (
+							bundleString.startsWith("[")
+								? JSON.parse(bundleString)
+								: JSON.parse(LZString.decompressFromBase64(bundleString))
+						);
 
 						if (
 							!Array.isArray(bundle) ||
@@ -2477,12 +2477,9 @@ async function ForBetterClub() {
 					.length / settingsPerPage
 			);
 
-		/** @type {[number, number, number, number]} */
-		const discordInvitePosition = [1500, 60, 250, 50];
-		/** @type {[number, number, number, number]} */
-		const licensePosition = [1500, 120, 250, 50];
-		/** @type {[number, number, number, number]} */
-		const websitePosition = [1240, 60, 250, 50];
+		const discordInvitePosition = /** @type {const} */ ([1500, 60, 250, 50]);
+		const licensePosition = /** @type {const} */ ([1500, 120, 250, 50]);
+		const websitePosition = /** @type {const} */ ([1240, 60, 250, 50]);
 		let currentPageNumber = 0;
 
 		/** @type {SettingsCategory | null} */
@@ -2503,7 +2500,7 @@ async function ForBetterClub() {
 			"addons",
 			"buttplug",
 		];
-		const settingCategoryLabels = {
+		const settingCategoryLabels = /** @type {const} */ ({
 			chat: "Chat & Social",
 			activities: "Activities & Arousal",
 			appearance: "Appearance & Wardrobe",
@@ -2514,7 +2511,7 @@ async function ForBetterClub() {
 			addons: "Other Addons",
 			buttplug: "Buttplug.io Toys",
 			hidden: "",
-		};
+		});
 
 		const vibratingSlots = [
 			"None",
@@ -2527,8 +2524,7 @@ async function ForBetterClub() {
 			),
 		];
 
-		/** @type {[number, number, number, number]} */
-		const scanButtonPosition = [1650, 225, 150, 50];
+		const scanButtonPosition = /** @type {const} */ ([1650, 225, 150, 50]);
 
 		const currentDefaultSettings = (category) =>
 			Object.entries(defaultSettings).filter(
@@ -2694,7 +2690,7 @@ async function ForBetterClub() {
 						"Silver"
 					);
 
-					if (currentSetting in defaultSettings) {
+					if (isDefaultSettingKey(currentSetting)) {
 						drawTooltip(
 							300,
 							830,
@@ -2919,10 +2915,9 @@ async function ForBetterClub() {
 			} else if (CurrentScreen === "Relog") {
 				name = Player.AccountName;
 			}
-			/** @type {Passwords} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			let passwords = JSON.parse(
-				localStorage.getItem(localStoragePasswordsKey)
+
+			let passwords = /** @type {Passwords} */ (
+				JSON.parse(localStorage.getItem(localStoragePasswordsKey))
 			);
 			if (!passwords) {
 				passwords = {};
@@ -2932,10 +2927,8 @@ async function ForBetterClub() {
 		};
 
 		w.bceClearPassword = (accountname) => {
-			/** @type {Passwords} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const passwords = JSON.parse(
-				localStorage.getItem(localStoragePasswordsKey)
+			const passwords = /** @type {Passwords} */ (
+				JSON.parse(localStorage.getItem(localStoragePasswordsKey))
 			);
 			if (
 				!passwords ||
@@ -2952,10 +2945,10 @@ async function ForBetterClub() {
 		async function loginCheck() {
 			await waitFor(() => CurrentScreen === "Login");
 
-			/** @type {() => Passwords} */
 			const loadPasswords = () =>
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				JSON.parse(localStorage.getItem(localStoragePasswordsKey));
+				/** @type {Passwords} */ (
+					JSON.parse(localStorage.getItem(localStoragePasswordsKey))
+				);
 
 			/** @type {{ passwords: Passwords, posMaps: Record<string, string> }} */
 			const loginData = {
@@ -3044,10 +3037,8 @@ async function ForBetterClub() {
 				return;
 			}
 			breakCircuit = true;
-			/** @type {Passwords} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			let passwords = JSON.parse(
-				localStorage.getItem(localStoragePasswordsKey)
+			let passwords = /** @type {Passwords} */ (
+				JSON.parse(localStorage.getItem(localStoragePasswordsKey))
 			);
 			debug("Attempting to log in again as", Player.AccountName);
 			if (!passwords) {
@@ -3147,7 +3138,7 @@ async function ForBetterClub() {
 	}
 
 	function bceStyles() {
-		const css = `
+		const css = /* CSS */ `
 		.bce-beep-link {
 			text-decoration: none;
 		}
@@ -3433,7 +3424,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"ChatRoomKeyDown",
 			{
-				"ChatRoomSendChat()": `if (bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
+				"ChatRoomSendChat()": `if (fbcSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
 						let text = ElementValue("InputChat");
 						let prefix = "";
 						if (!text) {
@@ -3699,6 +3690,11 @@ async function ForBetterClub() {
 					{ Expression: "Surprised", Limit: 90 },
 					{ Expression: "Horny", Limit: 70 },
 					{ Expression: "Dazed", Limit: 20 },
+					{ Expression: null, Limit: 0 },
+				],
+				// Pussy group includes Penis, which is the only type of "pussy" with expressions and controls erections.
+				Pussy: [
+					{ Expression: "Hard", Limit: 50 },
 					{ Expression: null, Limit: 0 },
 				],
 			};
@@ -5209,9 +5205,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CharacterSetActivePose",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			(args, next) => {
-				// eslint-disable-next-line prefer-const
-				let [C, Pose] = args;
+			(/** @type {[Character, string | string[] | null]} */ args, next) => {
+				const [C] = args;
+				let [, Pose] = args;
 				if (
 					!isCharacter(C) ||
 					(!isStringOrStringArray(Pose) && Pose !== null) ||
@@ -5220,6 +5216,7 @@ async function ForBetterClub() {
 				) {
 					return next(args);
 				}
+
 				if (!Pose || (Array.isArray(Pose) && Pose.every((p) => !p))) {
 					Pose = ["BaseUpper", "BaseLower"];
 				}
@@ -6893,8 +6890,9 @@ async function ForBetterClub() {
 		);
 
 		// X, Y, width, height. X and Y centered.
-		/** @type {[number, number, number, number]} */
-		const gagAntiCheatMenuPosition = [1700, 908, 200, 45],
+		const gagAntiCheatMenuPosition = /** @type {const} */ ([
+				1700, 908, 200, 45,
+			]),
 			/** @type {[number, number, number, number]} */
 			gagCheatMenuPosition = [1700, 908 + 45, 200, 45],
 			tooltipPosition = { X: 1000, Y: 910, Width: 200, Height: 90 };
@@ -7129,18 +7127,22 @@ async function ForBetterClub() {
 					}
 				}
 			`,
+
 				"if (Progress < -25) Progress = -25;": `
 				if (!C.BCEArousal) {
 					if (Progress < -25) Progress = -25;
 				} else {
 					if (Progress < -20) Progress = -20;
-				}`,
+				}
+				`,
+
 				"if (Progress > 25) Progress = 25;": `
 				if (!C.BCEArousal) {
 					if (Progress > 25) Progress = 25;
 				} else {
 					if (Progress > 20) Progress = 20;
-				}`,
+				}
+				`,
 			},
 			"Alternate arousal algorithm will be incorrect."
 		);
@@ -7301,13 +7303,16 @@ async function ForBetterClub() {
 					}
 				} else {
 				`,
+
 				"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": `if (Factor == -1) {
 						ActivityVibratorLevel(Character[C], 0);
 					}
 				}
 			} else {
 				ActivityVibratorLevel(Character[C], 0);
-			}`,
+			}
+			`,
+
 				"// No decay if there's a vibrating item running": `// No decay if there's a vibrating item running
 			Character[C].BCEEnjoyment = 1;`,
 			},
@@ -8325,9 +8330,9 @@ async function ForBetterClub() {
 			return friendMessages.get(friendId);
 		};
 
-		/** @type {{ [key: string]: { historyRaw: RawHistory[] } }} */
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const history = JSON.parse(localStorage.getItem(storageKey()) || "{}");
+		const history = /** @type {Record<string, {historyRaw: RawHistory[]}>} */ (
+			JSON.parse(localStorage.getItem(storageKey()) || "{}")
+		);
 		for (const [friendIdStr, friendHistory] of Object.entries(history)) {
 			const friendId = parseInt(friendIdStr);
 			const friend = handleUnseenFriend(friendId);
@@ -8651,7 +8656,7 @@ async function ForBetterClub() {
 				let wardrobe = next(args);
 				if (
 					isWardrobe(wardrobe) &&
-					fbcSettings.expandedWardrobe &&
+					fbcSettings.extendedWardrobe &&
 					wardrobe.length < EXPANDED_WARDROBE_SIZE
 				) {
 					wardrobe = loadExtendedWardrobe(wardrobe);
@@ -8712,10 +8717,10 @@ async function ForBetterClub() {
 		}
 		if (Player.OnlineSettings.BCEWardrobe) {
 			try {
-				/** @type {ItemBundle[][]} */
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const additionalItemBundle = JSON.parse(
-					LZString.decompressFromUTF16(Player.OnlineSettings.BCEWardrobe)
+				const additionalItemBundle = /** @type {ItemBundle[][]} */ (
+					JSON.parse(
+						LZString.decompressFromUTF16(Player.OnlineSettings.BCEWardrobe)
+					)
 				);
 				if (isWardrobe(additionalItemBundle)) {
 					for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
@@ -9408,7 +9413,7 @@ async function ForBetterClub() {
 			}
 		}
 
-		/** @type {(characterBundle: Character) => Promise<void>} */
+		/** @type {(characterBundle: NetCharacter) => Promise<void>} */
 		async function saveProfile(characterBundle) {
 			await quotaSafetyCheck();
 
@@ -9508,8 +9513,7 @@ async function ForBetterClub() {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const profile = await profiles.get(memberNumber);
 				const C = CharacterLoadOnline(
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-					JSON.parse(profile.characterBundle),
+					/** @type {NetCharacter} */ (JSON.parse(profile.characterBundle)),
 					memberNumber
 				);
 				C.BCESeen = profile.seen;
@@ -9838,10 +9842,8 @@ async function ForBetterClub() {
 	async function crafting() {
 		await waitFor(() => Array.isArray(Commands) && Commands.length > 0);
 
-		/** @type {[number, number, number, number]} */
-		const importPosition = [1485, 15, 90, 90];
-		/** @type {[number, number, number, number]} */
-		const exportPosition = [1585, 15, 90, 90];
+		const importPosition = /** @type {const} */ ([1485, 15, 90, 90]);
+		const exportPosition = /** @type {const} */ ([1585, 15, 90, 90]);
 
 		function importCraft() {
 			const str = window.prompt(displayText("Paste the craft here")) || "";
@@ -9849,9 +9851,9 @@ async function ForBetterClub() {
 				window.alert(displayText("No craft to import"));
 			}
 			try {
-				/** @type {Craft} */
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const craft = JSON.parse(LZString.decompressFromBase64(str));
+				const craft = /** @type {Craft} */ (
+					JSON.parse(LZString.decompressFromBase64(str))
+				);
 				if (!isNonNullObject(craft)) {
 					logError(craft);
 					throw new Error(`invalid craft type ${typeof craft} ${str}`);
