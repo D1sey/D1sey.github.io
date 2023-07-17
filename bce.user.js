@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.39
+// @version 4.41
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,22 +38,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.39";
-const settingsVersion = 48;
+const FBC_VERSION = "4.41";
+const settingsVersion = 49;
 
 const fbcChangelog = `${FBC_VERSION}
-- skip loading other addons, if they are being managed by BCAM
+- fixed /versions sometimes not showing all of your own addons
 
-4.38
-- hotfix for R94Beta1 GameVersion
+4.40
+- installation via FUSAM now recommended: https://sidiousious.gitlab.io/bc-addon-loader/
+- fix for FUSAM API change
 
-4.37
-- added updatedAt to notes
-- fixed an error when entering layering on an item with null property
-- fixed scrolling issue in the chat input field when typing out long messages
-- fixed the layering button not being visible on blocked, but visible items
-- fixed anti-cheat unintentionally triggering sometimes when wearing an item with BlinkState (e.g. shock collars)
-- R94 Beta 1 support
+4.39
+- skip loading other addons, if they are being managed by FUSAM
 `;
 
 /*
@@ -140,7 +136,7 @@ async function ForBetterClub() {
 		None: "",
 	});
 
-	/** @type {Record<"BCX" | "EBCH" | "MBS" | "LSCG", "none" | "external" | "stable" | "devel">} */
+	/** @type {Record<"BCX" | "EBCH" | "MBS" | "LSCG", "none" | "external" | "stable" | "devel" | "fusam">} */
 	const addonTypes = {
 		BCX: "none",
 		EBCH: "none",
@@ -472,8 +468,8 @@ async function ForBetterClub() {
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcxDevel = false;
-					if (handledByBCAM("BCX")) {
-						logInfo("BCX already loaded via BCAM, skipping");
+					if (handledByFUSAM("BCX")) {
+						logInfo("BCX already loaded via FUSAM, skipping");
 					} else {
 						w.BCX_SOURCE = BCX_SOURCE;
 						loadExternalAddon("BCX", BCX_SOURCE).then((success) => {
@@ -495,8 +491,8 @@ async function ForBetterClub() {
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcx = false;
-					if (handledByBCAM("BCX")) {
-						logInfo("BCX already loaded via BCAM, skipping");
+					if (handledByFUSAM("BCX")) {
+						logInfo("BCX already loaded via FUSAM, skipping");
 					} else {
 						w.BCX_SOURCE = BCX_DEVEL_SOURCE;
 						loadExternalAddon("BCX", BCX_DEVEL_SOURCE).then((success) => {
@@ -517,8 +513,8 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					if (handledByBCAM("EBCH")) {
-						logInfo("EBCH already loaded via BCAM, skipping");
+					if (handledByFUSAM("EBCH")) {
+						logInfo("EBCH already loaded via FUSAM, skipping");
 					} else {
 						loadExternalAddon("EBCH", EBCH_SOURCE).then((success) => {
 							if (success) {
@@ -538,8 +534,8 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					if (handledByBCAM("MBS")) {
-						logInfo("MBS already loaded via BCAM, skipping");
+					if (handledByFUSAM("MBS")) {
+						logInfo("MBS already loaded via FUSAM, skipping");
 					} else {
 						loadExternalAddon("MBS", MBS_SOURCE).then((success) => {
 							if (success) {
@@ -558,8 +554,8 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					if (handledByBCAM("LSCG")) {
-						logInfo("LSCG already loaded via BCAM, skipping");
+					if (handledByFUSAM("LSCG")) {
+						logInfo("LSCG already loaded via FUSAM, skipping");
 					} else {
 						loadExternalAddon("LSCG", LSCG_SOURCE).then((success) => {
 							if (success) {
@@ -6509,9 +6505,21 @@ async function ForBetterClub() {
 		}
 		ServerSend("ChatRoomChat", message);
 	}
-	if (ServerIsConnected) {
+	if (ServerIsConnected && ServerPlayerIsInChatRoom()) {
 		sendHello(null, true);
 	}
+	createTimer(() => {
+		const loadedAddons = bcModSdk.getModsInfo();
+		if (
+			fbcSettings.shareAddons &&
+			JSON.stringify(loadedAddons) !== JSON.stringify(Player.FBCOtherAddons) &&
+			ServerIsConnected &&
+			ServerPlayerIsInChatRoom()
+		) {
+			Player.FBCOtherAddons = loadedAddons;
+			sendHello(null, true);
+		}
+	}, 5000);
 
 	async function hiddenMessageHandler() {
 		await waitFor(() => ServerSocket && ServerIsConnected);
@@ -10085,7 +10093,11 @@ async function ForBetterClub() {
 					bcModSdk.getModsInfo().some((mod) => mod.name === key) &&
 					value === "none"
 				) {
-					payload[key] = "external";
+					if (handledByFUSAM(key)) {
+						payload[key] = "fusam";
+					} else {
+						payload[key] = "external";
+					}
 				} else {
 					payload[key] = value;
 				}
@@ -10152,8 +10164,8 @@ async function ForBetterClub() {
 	}
 
 	/** @type {(addon: string) => boolean} */
-	function handledByBCAM(addon) {
-		return w.BCAM?.addons && addon in w.BCAM.addons;
+	function handledByFUSAM(addon) {
+		return w.FUSAM?.addons && addon in w.FUSAM.addons;
 	}
 
 	/** @type {(ms: number) => Promise<void>} */
