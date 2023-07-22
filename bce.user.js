@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.41
+// @version 4.45
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.41";
-const settingsVersion = 49;
+const FBC_VERSION = "4.45";
+const settingsVersion = 50;
 
 const fbcChangelog = `${FBC_VERSION}
-- fixed /versions sometimes not showing all of your own addons
+- removed hand-gag handling; this will be handled better by LSCG in the near future
 
-4.40
-- installation via FUSAM now recommended: https://sidiousious.gitlab.io/bc-addon-loader/
-- fix for FUSAM API change
+4.44
+- fixed shock triggers
 
-4.39
-- skip loading other addons, if they are being managed by FUSAM
+4.43
+- fixed animation triggers from targeted activities
 `;
 
 /*
@@ -66,7 +65,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R93", "R94Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R94"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -650,15 +649,6 @@ async function ForBetterClub() {
 			description:
 				"Allows you to be leashed between rooms even when you are not wearing an item that counts as a leash to allow roleplaying being carried in arms.",
 		},
-		handgag: {
-			label: "Clamping hand over mouth affects speech",
-			value: true,
-			sideEffects: (newValue) => {
-				debug("handgag", newValue);
-			},
-			category: "immersion",
-			description: "Hand clamp action imposes a 45-second gag effect.",
-		},
 		hideHiddenItemsIcon: {
 			label: "Hide the hidden items icon",
 			value: false,
@@ -1129,11 +1119,7 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
-			case "R94Beta1":
-			case "R94Beta2":
-			case "R94Beta3":
-			case "R94Beta4":
-			case "R94":
+			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "21318CAF",
 					ActivitySetArousal: "3AE28123",
@@ -1155,7 +1141,7 @@ async function ForBetterClub() {
 					CharacterReleaseTotal: "396640D1",
 					CharacterSetActivePose: "5BCD2A9E",
 					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "0DB6C85D",
+					CharacterSetFacialExpression: "A6E3D4AA",
 					ChatRoomCharacterItemUpdate: "041F9B91",
 					ChatRoomCharacterUpdate: "9D0EEA39",
 					ChatRoomClearAllElements: "C49AA2C1",
@@ -1179,9 +1165,9 @@ async function ForBetterClub() {
 					CommonClick: "1F6DF7CB",
 					CommonColorIsValid: "390A2CE4",
 					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "482C6768",
+					CraftingClick: "FCAFCC5D",
 					CraftingConvertSelectedToItem: "B3F4D559",
-					CraftingRun: "02D8661B",
+					CraftingRun: "E6488E16",
 					DialogClick: "D0FA2714",
 					DialogDraw: "DC5D416C",
 					DialogDrawItemMenu: "FCE556C2",
@@ -1250,137 +1236,6 @@ async function ForBetterClub() {
 					StruggleFlexibilityProcess: "278D7285",
 					StruggleLockPickDraw: "2F1F603B",
 					StruggleMinigameHandleExpression: "0BFDB2A7",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "226C417C",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
-					WardrobeClick: "E96F7F63",
-					WardrobeExit: "EE83FF29",
-					WardrobeFastLoad: "38627DC2",
-					WardrobeFastSave: "B62385C1",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "9616EB3A",
-				});
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "21318CAF",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "723EA7F1",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "0BBDEE59",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "918170E7",
-					CharacterCompressWardrobe: "8D3B1AB1",
-					CharacterDecompressWardrobe: "A9FD29CC",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
-					CharacterLoadCanvas: "BA6AD4FF",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "5BF9DA5A",
-					CharacterReleaseTotal: "396640D1",
-					CharacterSetActivePose: "5BCD2A9E",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "C794A455",
-					ChatRoomCharacterItemUpdate: "041F9B91",
-					ChatRoomCharacterUpdate: "9D0EEA39",
-					ChatRoomClearAllElements: "C49AA2C1",
-					ChatRoomClick: "79E651EB",
-					ChatRoomCreateElement: "9A3FD548",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "597B062C",
-					ChatRoomDrawCharacterOverlay: "06FB4CC3",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "B4BFDB0C",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "C7053411",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "77FAE23C",
-					ChatRoomSendChat: "7F540ED0",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "5C948CC3",
-					CommandParse: "C9061FE8",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "9CB5E895",
-					CraftingConvertSelectedToItem: "46CE5BE0",
-					CraftingRun: "55F21AB3",
-					DialogClick: "D0FA2714",
-					DialogDraw: "DC5D416C",
-					DialogDrawItemMenu: "FCE556C2",
-					DialogLeave: "C37553DC",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
-					DrawCharacter: "B54922F5",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "3D3D74F5",
-					DrawImageResize: "8CF55F04",
-					DrawItemPreview: "A27E9228",
-					DrawProcess: "E60F65B5",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "562F83D4",
-					ElementCreateTextArea: "8721B388",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "3525631A",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "E248ADC7",
-					InventoryGet: "E666F671",
-					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
-					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
-					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
-					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
-					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
-					InventoryItemMiscOwnerTimerPadlockDraw: "BCA80BF8",
-					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
-					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
-					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
-					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
-					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
-					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "CC034993",
-					OnlineProfileRun: "B0AF608D",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "FB794E30",
-					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
-					ServerInit: "FEC6457F",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerSend: "90A61F57",
-					SkillGetWithRatio: "16620445",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "5F6E16C8",
-					SpeechGetTotalGagLevel: "C55B705A",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "41FA76AC",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
 					TextLoad: "ADF7C890",
@@ -1730,7 +1585,6 @@ async function ForBetterClub() {
 	registerFunction(autoStruggle, "autoStruggle");
 	registerFunction(nicknames, "nicknames");
 	registerFunction(leashAlways, "leashAlways");
-	registerFunction(clampGag, "clampGag");
 	registerFunction(toySync, "toySync");
 	registerFunction(pastProfiles, "pastProfiles");
 	registerFunction(pendingMessages, "pendingMessages");
@@ -1755,12 +1609,6 @@ async function ForBetterClub() {
 				typeof ServerIsConnected === "boolean" &&
 				ServerIsConnected
 		);
-		if (
-			GameVersion === "R93" &&
-			SDK.getOriginalHash("CharacterSetFacialExpression") === "0DB6C85D"
-		) {
-			GameVersion = "R94Beta1";
-		}
 		for (const [func, hash] of Object.entries(expectedHashes(GameVersion))) {
 			if (!w[func]) {
 				logWarn(`Expected function ${func} not found.`);
@@ -3783,54 +3631,28 @@ async function ForBetterClub() {
 	async function automaticExpressions() {
 		await waitFor(() => CurrentScreen === "ChatRoom");
 
-		if (GameVersion.startsWith("R93")) {
-			patchFunction(
-				"StruggleMinigameHandleExpression",
-				{
-					'if (Count == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
-						'if (Count >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-					'if (Count == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
-						'else if (Count >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-					'if (Count == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
-						'else if (Count >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
-						'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
-						'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
-						'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", "Angry");':
-						'CharacterSetFacialExpression(Player, "Eyebrows", "Angry", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", null);':
-						'CharacterSetFacialExpression(Player, "Eyebrows", null, 10);',
-					"Count ==": "Count >=",
-				},
-				"Resetting blush, eyes, and eyebrows after struggling"
-			);
-		} else {
-			patchFunction(
-				"StruggleMinigameHandleExpression",
-				{
-					'CharacterSetFacialExpression(Player, "Blush", "High");':
-						'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-					'CharacterSetFacialExpression(Player, "Blush", "Medium");':
-						'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-					'CharacterSetFacialExpression(Player, "Blush", "Low");':
-						'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
-						'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
-						'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
-						'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", "Angry");':
-						'CharacterSetFacialExpression(Player, "Eyebrows", "Angry", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", null);':
-						'CharacterSetFacialExpression(Player, "Eyebrows", null, 10);',
-				},
-				"Resetting blush, eyes, and eyebrows after struggling"
-			);
-		}
+		patchFunction(
+			"StruggleMinigameHandleExpression",
+			{
+				'CharacterSetFacialExpression(Player, "Blush", "High");':
+					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
+				'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
+					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
+				'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
+					'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
+				'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
+					'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", "Angry");':
+					'CharacterSetFacialExpression(Player, "Eyebrows", "Angry", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", null);':
+					'CharacterSetFacialExpression(Player, "Eyebrows", null, 10);',
+			},
+			"Resetting blush, eyes, and eyebrows after struggling"
+		);
 
 		if (!w.bce_ArousalExpressionStages) {
 			// eslint-disable-next-line camelcase
@@ -5057,6 +4879,20 @@ async function ForBetterClub() {
 			];
 		}
 
+		/** @type {(dict: ChatMessageDictionary[]) => boolean} */
+		function dictHasPlayerTarget(dict) {
+			return (
+				dict?.some(
+					(t) =>
+						t &&
+						/^(Target|Destination)Character(Name)?$/u.test(t.Tag) &&
+						t.MemberNumber === Player.MemberNumber
+				) ||
+				dict?.some((t) => t && t.TargetCharacter === Player.MemberNumber) ||
+				false
+			);
+		}
+
 		registerSocketListener(
 			"ChatRoomMessage",
 			(
@@ -5076,9 +4912,7 @@ async function ForBetterClub() {
 									continue;
 								} else if (
 									matcher.Criteria.TargetIsPlayer &&
-									data.Dictionary?.find((t) =>
-										/^(Target|Destination)Character(Name)?$/u.test(t.Tag)
-									)?.MemberNumber !== Player.MemberNumber
+									!dictHasPlayerTarget(data.Dictionary)
 								) {
 									continue;
 								} else if (
@@ -5096,12 +4930,7 @@ async function ForBetterClub() {
 								pushEvent(w.bce_EventExpressions[trigger.Event]);
 							} else if (
 								data.Sender === Player.MemberNumber ||
-								data.Dictionary?.some(
-									// eslint-disable-next-line no-loop-func
-									(t) =>
-										/^(Target|Destination)Character(Name)?$/u.test(t.Tag) &&
-										t.MemberNumber === Player.MemberNumber
-								)
+								dictHasPlayerTarget(data.Dictionary)
 							) {
 								// Lacking criteria, check for presence of player as source or target
 								pushEvent(w.bce_EventExpressions[trigger.Event]);
@@ -9182,51 +9011,6 @@ async function ForBetterClub() {
 		} else {
 			disableLeashing();
 		}
-	}
-
-	function clampGag() {
-		registerSocketListener(
-			"ChatRoomMessage",
-			(
-				/** @type {ChatMessage} */
-				data
-			) => {
-				const targetMemberNumber =
-					data &&
-					Array.isArray(data.Dictionary) &&
-					data.Dictionary.find((d) => d.Tag === "TargetCharacter")
-						?.MemberNumber;
-				if (
-					data?.Content === "ChatOther-ItemMouth-HandGag" &&
-					targetMemberNumber
-				) {
-					let s = characterStates.get(targetMemberNumber);
-					if (!s) {
-						s = {
-							clamped: 0,
-						};
-					}
-					s.clamped = Date.now() + 45000;
-					characterStates.set(targetMemberNumber, s);
-				}
-			}
-		);
-
-		SDK.hookFunction(
-			"SpeechGetTotalGagLevel",
-			HOOK_PRIORITIES.ModifyBehaviourLow,
-			/** @type {(args: [Character, boolean], next: (args: [Character, boolean]) => number) => number} */
-			(args, next) => {
-				let level = next(args);
-				if (
-					fbcSettings.handgag &&
-					characterStates.get(args[0].MemberNumber)?.clamped > Date.now()
-				) {
-					level += 2;
-				}
-				return level;
-			}
-		);
 	}
 
 	function toySync() {
